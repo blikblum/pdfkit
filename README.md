@@ -1,3 +1,12 @@
+# pdfkit-next
+
+A customized pdfkit build that uses not yet released fixes / features
+
+- Fix Noto font rendering [fontkit#230](https://github.com/foliojs/fontkit/pull/230)
+- Fix for deprecated usage new Buffer [fontkit#227](https://github.com/foliojs/fontkit/pull/227)
+- Fix compatibility with CSF [restructure#34](https://github.com/foliojs/restructure/pull/34) [restructure#37](https://github.com/foliojs/restructure/pull/37)
+- Use browser friendly code [fontkit#208](https://github.com/foliojs/fontkit/pull/208) [fontkit#209](https://github.com/foliojs/fontkit/pull/209) [linebreak#18](https://github.com/foliojs/linebreak/pull/18)
+
 # PDFKit
 
 A JavaScript PDF generation library for Node and the browser.
