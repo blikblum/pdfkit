@@ -2,6 +2,13 @@
 
 ### Unreleased
 
+### [v0.12.1] - 2021-04-02
+
+- Update crypto-js to v3.3 (fix security issue)
+- Update fontkit to 1.8.1
+
+### [v0.12.0] - 2021-04-02
+
 - Add support for Embedded Files and File Attachment Annotations
 - Accessibility support
 - Replace integration tests by visual regression tests
@@ -9,7 +16,6 @@
 - Fix Buffer() is deprecation warning
 - Add `forms.md` to generate documentation files
 - Fix "@" in FontName
-
 
 ### [v0.11.0] - 2019-12-03
 
