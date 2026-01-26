@@ -8,6 +8,7 @@
 - Add pageLayout option to control how pages are displayed in PDF viewers
 - Fix Interlaced PNG with indexed transparency rendered incorrectly
 - Preserve existing PageMode instead of overwriting when adding outlines
+- Add userUnit option for custom page units (PDF 1.6)
 - Support outlines that jump to specific page positions with custom zoom level
 
 ### [v0.17.2] - 2025-08-30
