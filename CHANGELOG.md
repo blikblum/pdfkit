@@ -8,6 +8,8 @@
 - Add experimental `toBlob(document)` and `toBytes(document)` output helpers under `pdfkit/output`
 - Accept already-parsed fontkit `Font` instances in `doc.font()` and `registerFont`
 - Load the PDF/A ICC profile from disk only when needed in Node, while continuing to bundle it in browser builds
+- Add tools to convert raw AFM standard-font definitions into parsed or compact runtime JavaScript modules
+- [BREAKING CHANGE] Use generated standard-font data instead of parsing raw AFM definitions at runtime. Node loads font metrics lazily; browser applications must import each font they use from `pdfkit/standard-fonts/*` and register it with `registerStdFonts()`
 - [BREAKING CHANGE] Restrict AcroForm options to documented mappings and explicit escape hatches.
 - [BREAKING CHANGE] Stop automatically uppercasing annotation option keys.
 - [BREAKING CHANGE] Throw from `addNamedEmbeddedFile` when no ref is given, instead of writing an unparseable `undefined` token into the `/EmbeddedFiles` name tree
