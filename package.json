@@ -23,9 +23,9 @@
   },
   "bugs": "https://github.com/foliojs/pdfkit/issues",
   "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@babel/plugin-external-helpers": "^7.29.7",
-    "@babel/preset-env": "^7.29.7",
+    "@babel/core": "^8.0.1",
+    "@babel/plugin-external-helpers": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
     "@eslint/js": "^10.0.1",
     "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
@@ -43,6 +43,7 @@
     "prettier": "3.9.6",
     "pug": "^3.0.4",
     "rollup": "^4.62.4",
+    "sharp": "^0.35.3",
     "vitest": "^4.1.10"
   },
   "dependencies": {

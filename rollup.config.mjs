@@ -53,12 +53,14 @@ const browserPlugins = () => [
   babel({
     babelHelpers: 'bundled',
     babelrc: false,
+    targets: {
+      browsers: supportedBrowsers,
+    },
     presets: [
       [
         '@babel/preset-env',
         {
           modules: false,
-          bugfixes: true,
           targets: {
             browsers: supportedBrowsers,
           },
@@ -87,6 +89,9 @@ export default [
         exportConditions: ['node'],
       }),
       babel({
+        targets: {
+          node: '20',
+        },
         babelHelpers: 'bundled',
         babelrc: false,
         presets: [
