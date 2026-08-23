@@ -39,29 +39,56 @@ for every standard font your application uses before selecting that font. The
 default document font is Helvetica, so it must be registered before constructing
 a document unless the document is created with `{ font: null }`.
 
+### Experimental output helpers
+
+PDFKit provides experimental `toBlob` and `toBytes` helpers from
+`pdfkit/output`. These functions may change before they are stabilized. Call the
+selected helper before ending the document so it receives the complete output.
+
+Use `toBlob` when displaying, downloading or uploading the PDF in a browser:
+
     import PDFDocument, { registerStdFonts } from 'pdfkit';
     import Helvetica from 'pdfkit/standard-fonts/Helvetica';
-    import blobStream from 'blob-stream';
+    import { toBlob } from 'pdfkit/output';
 
     registerStdFonts(Helvetica);
 
     const doc = new PDFDocument();
-
-    // pipe the document to a blob
-    const stream = doc.pipe(blobStream());
+    const output = toBlob(doc);
 
     // add your content to the document here, as usual
 
-    // get a blob when you're done
     doc.end();
-    stream.on('finish', function() {
-      // get a blob you can do whatever you like with
-      const blob = stream.toBlob('application/pdf');
+    const blob = await output;
+    const url = URL.createObjectURL(blob);
+    iframe.src = url;
 
-      // or get a blob URL for display in the browser
-      const url = stream.toBlobURL('application/pdf');
+    // Revoke the URL when the iframe no longer needs the PDF.
+    // URL.revokeObjectURL(url);
+
+Use `toBytes` instead when a binary API, worker or parser needs one contiguous
+`Uint8Array`:
+
+    import { toBytes } from 'pdfkit/output';
+
+    const output = toBytes(doc);
+    doc.end();
+    const bytes = await output;
+
+The stable, dependency-free alternative is to collect the document's
+`Uint8Array` chunks using its events and construct the Blob directly:
+
+    const chunks = [];
+
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => {
+      const blob = new Blob(chunks, { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
       iframe.src = url;
     });
+
+    // add your content to the document here, as usual
+    doc.end();
 
 The browser build does not depend on Node's `stream` module. A document is still a
 readable stream, but only the parts a PDF document needs are implemented: `on`,

@@ -139,38 +139,65 @@ There are three ways to use PDFKit in the browser:
 - Use [webpack](https://webpack.js.org/). See [complete example](https://github.com/foliojs/pdfkit/blob/master/examples/webpack).
 - Use prebuilt version. Distributed as `pdfkit.standalone.js` file in the [releases](https://github.com/foliojs/pdfkit/releases) or in the package `js` folder.
 
-In addition to PDFKit, you'll need somewhere to stream the output to. HTML5 has a
-[Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) object which can be used to store binary data, and
-get URLs to this data in order to display PDF output inside an iframe, or upload to a server, etc. In order to
-get a Blob from the output of PDFKit, you can use the [blob-stream](https://github.com/devongovett/blob-stream)
-module.
+In addition to PDFKit, you'll need to collect its output. Browsers provide a
+[Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) object for storing
+binary data and creating URLs that can be displayed in an iframe, downloaded or
+uploaded.
 
-The following example uses Browserify or webpack to load `PDFKit` and `blob-stream`. See [here](https://codepen.io/blikblum/pen/gJNWMg?editors=1010) and [here](https://codepen.io/blikblum/pen/YboVNq?editors=1010) for examples
-of prebuilt version usage.
+### Experimental output helpers
+
+PDFKit provides experimental `toBlob` and `toBytes` helpers from
+`pdfkit/output`. These functions may change before they are stabilized. Call the
+selected helper before ending the document so it receives the complete output.
+
+Use `toBlob` when displaying, downloading or uploading the PDF in a browser:
 
 ```javascript
-// require dependencies
-const PDFDocument = require('pdfkit');
-const blobStream = require('blob-stream');
+import PDFDocument, { registerStdFonts } from 'pdfkit';
+import Helvetica from 'pdfkit/standard-fonts/Helvetica';
+import { toBlob } from 'pdfkit/output';
 
-// create a document the same way as above
+registerStdFonts(Helvetica);
 const doc = new PDFDocument();
+const output = toBlob(doc);
 
-// pipe the document to a blob
-const stream = doc.pipe(blobStream());
+// Add your content to the document here, as usual.
 
-// add your content to the document here, as usual
-
-// get a blob when you are done
 doc.end();
-stream.on('finish', function() {
-  // get a blob you can do whatever you like with
-  const blob = stream.toBlob('application/pdf');
+const blob = await output;
+const url = URL.createObjectURL(blob);
+iframe.src = url;
 
-  // or get a blob URL for display in the browser
-  const url = stream.toBlobURL('application/pdf');
+// Revoke the URL when the iframe no longer needs the PDF.
+// URL.revokeObjectURL(url);
+```
+
+Use `toBytes` instead when a binary API, worker or parser needs one contiguous
+`Uint8Array`:
+
+```javascript
+import { toBytes } from 'pdfkit/output';
+
+const output = toBytes(doc);
+doc.end();
+const bytes = await output;
+```
+
+The stable, dependency-free alternative is to collect the document's
+`Uint8Array` chunks using its events and construct the Blob directly:
+
+```javascript
+const chunks = [];
+
+doc.on('data', chunk => chunks.push(chunk));
+doc.on('end', () => {
+  const blob = new Blob(chunks, { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
   iframe.src = url;
 });
+
+// Add your content to the document here, as usual.
+doc.end();
 ```
 
 You can see an interactive in-browser demo of PDFKit [here](http://pdfkit.org/demo/browser.html).

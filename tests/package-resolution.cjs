@@ -11,6 +11,7 @@ const emittedIccPath = path.resolve(
   '../js/data/sRGB_IEC61966_2_1.icc',
 );
 const nodeBundlePath = require.resolve('pdfkit');
+const outputHelpers = require('pdfkit/output');
 const sourceIcc = fs.readFileSync(sourceIccPath);
 
 assert.deepEqual(fs.readFileSync(emittedIccPath), sourceIcc);
@@ -58,13 +59,33 @@ try {
 assert.equal(typeof PDFDocument, 'function');
 assert.equal(PDFDocument.name, 'PDFDocument');
 assert.equal(typeof PDFDocument.registerFile, 'function');
+assert.equal(typeof outputHelpers.toBlob, 'function');
+assert.equal(typeof outputHelpers.toBytes, 'function');
 
 (async () => {
+  const nodeDocument = new PDFDocument({ autoFirstPage: false, font: null });
+  const nodeOutput = outputHelpers.toBytes(nodeDocument);
+  nodeDocument.end();
+  assert.ok((await nodeOutput) instanceof Uint8Array);
+
   const browserModule = await import('pdfkit');
+  const browserOutputHelpers = await import('pdfkit/output');
 
   assert.equal(typeof browserModule.default, 'function');
   assert.equal(typeof browserModule.registerFile, 'function');
   assert.equal(browserModule.default.registerFile, browserModule.registerFile);
+  assert.equal(typeof browserOutputHelpers.toBlob, 'function');
+  assert.equal(typeof browserOutputHelpers.toBytes, 'function');
+
+  const browserDocument = new browserModule.default({
+    autoFirstPage: false,
+    font: null,
+  });
+  const browserOutput = browserOutputHelpers.toBlob(browserDocument);
+  browserDocument.end();
+  const blob = await browserOutput;
+  assert.equal(blob.type, 'application/pdf');
+  assert.ok(blob.size > 0);
 
   const pdfaDocument = new browserModule.default({
     autoFirstPage: false,

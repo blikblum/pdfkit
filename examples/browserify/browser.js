@@ -1,5 +1,4 @@
-var PDFDocument = require('../..');
-var blobStream = require('blob-stream');
+var PDFDocument = require('../../js/pdfkit.browser.js');
 var ace = require('brace');
 require('brace/mode/javascript');
 require('brace/theme/monokai');
@@ -7,10 +6,24 @@ require('brace/theme/monokai');
 var lorem =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in suscipit purus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vivamus nec hendrerit felis. Morbi aliquam facilisis risus eu lacinia. Sed eu leo in turpis fringilla hendrerit. Ut nec accumsan nisl. Suspendisse rhoncus nisl posuere tortor tempus et dapibus elit porta. Cras leo neque, elementum a rhoncus ut, vestibulum non nibh. Phasellus pretium justo turpis. Etiam vulputate, odio vitae tincidunt ultricies, eros odio dapibus nisi, ut tincidunt lacus arcu eu elit. Aenean velit erat, vehicula eget lacinia ut, dignissim non tellus. Aliquam nec lacus mi, sed vestibulum nunc. Suspendisse potenti. Curabitur vitae sem turpis. Vestibulum sed neque eget dolor dapibus porttitor at sit amet sem. Fusce a turpis lorem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;\nMauris at ante tellus. Vestibulum a metus lectus. Praesent tempor purus a lacus blandit eget gravida ante hendrerit. Cras et eros metus. Sed commodo malesuada eros, vitae interdum augue semper quis. Fusce id magna nunc. Curabitur sollicitudin placerat semper. Cras et mi neque, a dignissim risus. Nulla venenatis porta lacus, vel rhoncus lectus tempor vitae. Duis sagittis venenatis rutrum. Curabitur tempor massa tortor.';
 
-function makePDF(PDFDocument, blobStream, lorem, iframe) {
-  // create a document and pipe to a blob
+function makePDF(PDFDocument, lorem, iframe) {
+  // create a document and collect its output
   var doc = new PDFDocument();
-  var stream = doc.pipe(blobStream());
+  var chunks = [];
+
+  doc.on('data', function(chunk) {
+    chunks.push(chunk);
+  });
+  doc.on('end', function() {
+    var blob = new Blob(chunks, { type: 'application/pdf' });
+
+    if (iframe.pdfkitURL) {
+      URL.revokeObjectURL(iframe.pdfkitURL);
+    }
+
+    iframe.pdfkitURL = URL.createObjectURL(blob);
+    iframe.src = iframe.pdfkitURL;
+  });
 
   // draw some text
   doc.fontSize(25).text('Here is some vector graphics...', 100, 80);
@@ -74,11 +87,8 @@ function makePDF(PDFDocument, blobStream, lorem, iframe) {
       ellipsis: true
     });
 
-  // end and display the document in the iframe to the right
+  // end the document; the end listener displays it in the iframe to the right
   doc.end();
-  stream.on('finish', function() {
-    iframe.src = stream.toBlobURL('application/pdf');
-  });
 }
 
 var editor = ace.edit('editor');
@@ -99,7 +109,7 @@ editor
   .clearSelection();
 
 var iframe = document.querySelector('iframe');
-makePDF(PDFDocument, blobStream, lorem, iframe);
+makePDF(PDFDocument, lorem, iframe);
 
 let debounceTimeout;
 
@@ -112,13 +122,12 @@ editor.getSession().on('change', function() {
     localStorage.setItem('editorText', text)
     var fn = new Function(
       'PDFDocument',
-      'blobStream',
       'lorem',
       'iframe',
       text
     );
     debounceTimeout = setTimeout(() => {
-      fn(PDFDocument, blobStream, lorem, iframe);
+      fn(PDFDocument, lorem, iframe);
       debounceTimeout = undefined;
     }, 100);
   } catch (e) {

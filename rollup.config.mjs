@@ -128,6 +128,22 @@ export default [
     },
     plugins: browserPlugins(),
   },
+  // Experimental helpers for collecting document output.
+  {
+    input: 'lib/output.js',
+    output: [
+      {
+        file: 'js/output.cjs',
+        format: 'cjs',
+        exports: 'named',
+      },
+      {
+        file: 'js/output.mjs',
+        format: 'es',
+      },
+    ],
+    plugins: browserPlugins(),
+  },
   // Standard font data is kept outside the main bundles so it can be loaded
   // individually on demand.
   {
