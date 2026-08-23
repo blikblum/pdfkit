@@ -175,9 +175,45 @@ stream.on('finish', function() {
 
 You can see an interactive in-browser demo of PDFKit [here](http://pdfkit.org/demo/browser.html).
 
-Note that the browser build has no access to the file system: passing a file path to
-`registerFont`, `image` or `file` throws. Pass a `Uint8Array`, an `ArrayBuffer` or a
-data URL instead.
+The browser build has no access to the file system. You can register a
+`Uint8Array` under a path before passing that exact path to `registerFont`,
+`image` or `file`:
+
+```javascript
+import PDFDocument, { registerFile } from 'pdfkit';
+
+const response = await fetch('/fonts/Roboto-Regular.ttf');
+const fontData = new Uint8Array(await response.arrayBuffer());
+
+registerFile('fonts/Roboto-Regular.ttf', fontData);
+
+const doc = new PDFDocument();
+doc.registerFont('Roboto', 'fonts/Roboto-Regular.ttf');
+
+// Unregister the path when it is no longer needed.
+registerFile('fonts/Roboto-Regular.ttf', undefined);
+```
+
+Registration is global to the loaded PDFKit module. Registering the same path
+again replaces its data. In Node, registered data takes precedence over a file at
+the same path; unregistering it restores normal file system lookup. The CommonJS
+API is available on the `PDFDocument` constructor:
+
+```javascript
+const PDFDocument = require('pdfkit');
+
+PDFDocument.registerFile('files/example.txt', new Uint8Array([1, 2, 3]), {
+  birthtime: new Date('2020-01-02T03:04:05Z'),
+  ctime: new Date('2021-02-03T04:05:06Z'),
+});
+PDFDocument.registerFile('files/example.txt', undefined);
+```
+
+`registerFile` accepts only a `Uint8Array` or `undefined`. You can still pass a
+`Uint8Array` or `ArrayBuffer` directly to `registerFont`, `image` and `file`, and
+you can pass a data URL directly to `image` and `file`. An unregistered file path
+throws in the browser. The optional `birthtime` and `ctime` values must be valid
+`Date` objects; either omitted value defaults to the time of registration.
 
 ## Documentation
 

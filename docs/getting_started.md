@@ -69,6 +69,47 @@ readable stream, but only the parts a PDF document needs are implemented: `on`,
 `destroy`, `stream.pipeline` and the `readable`, `error` and `close` events are
 available in Node only.
 
+The browser build cannot read from the file system. To keep using paths with
+`registerFont`, `image` or `file`, register a `Uint8Array` under the exact path
+first:
+
+    import PDFDocument, { registerFile } from 'pdfkit';
+
+    const response = await fetch('/fonts/Roboto-Regular.ttf');
+    const fontData = new Uint8Array(await response.arrayBuffer());
+
+    registerFile('fonts/Roboto-Regular.ttf', fontData);
+
+    const doc = new PDFDocument();
+    doc.registerFont('Roboto', 'fonts/Roboto-Regular.ttf');
+    doc.font('Roboto').text('This font was loaded from memory.');
+
+    // Unregister the path when it is no longer needed.
+    registerFile('fonts/Roboto-Regular.ttf', undefined);
+
+Registration is global to the loaded PDFKit module. Registering the same path
+again replaces its bytes. Passing `undefined` unregisters the path and does
+nothing if it was not registered. Unregistered paths throw in browsers.
+
+The same registry is available from the CommonJS entry point in Node. Registered
+data takes precedence over a file at the same path; unregistering restores normal
+file system lookup.
+
+    const PDFDocument = require('pdfkit');
+
+    PDFDocument.registerFile('files/example.txt', new Uint8Array([1, 2, 3]), {
+      birthtime: new Date('2020-01-02T03:04:05Z'),
+      ctime: new Date('2021-02-03T04:05:06Z'),
+    });
+    PDFDocument.registerFile('files/example.txt', undefined);
+
+`registerFile` accepts only a `Uint8Array` or `undefined`. A `Uint8Array` or
+`ArrayBuffer` can still be passed directly to `registerFont`, `image` and `file`,
+and a data URL can be passed directly to `image` and `file`, but these other
+representations cannot be stored with `registerFile`. The optional `birthtime`
+and `ctime` values must be valid `Date` objects. Any omitted timestamp defaults
+to the time of registration.
+
 You can see an interactive in-browser demo of PDFKit [here](http://pdfkit.org/demo/browser.html).
 
 ## Document options
