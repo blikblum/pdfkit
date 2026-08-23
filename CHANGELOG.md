@@ -4,6 +4,7 @@
 
 - [BREAKING CHANGE] Remove the virtual file system (`pdfkit/virtual-fs`). Browser builds no longer depend on `fs`: use `registerFile` to register `Uint8Array` data under a path, pass a `Uint8Array` or `ArrayBuffer` directly to `registerFont`, `image` and `file`, or pass a data URL directly to `image` and `file`
 - Add `registerFile(path, data, options)` to globally register in-memory files in Node and browsers, with optional `birthtime` and `ctime` metadata. Passing `undefined` as data unregisters the path
+- Load the PDF/A ICC profile from disk only when needed in Node, while continuing to bundle it in browser builds
 - [BREAKING CHANGE] Restrict AcroForm options to documented mappings and explicit escape hatches.
 - [BREAKING CHANGE] Stop automatically uppercasing annotation option keys.
 - [BREAKING CHANGE] Throw from `addNamedEmbeddedFile` when no ref is given, instead of writing an unparseable `undefined` token into the `/EmbeddedFiles` name tree

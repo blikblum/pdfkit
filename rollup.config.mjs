@@ -1,6 +1,9 @@
 import { babel } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import asset from './tools/asset-plugin.mjs';
 import binary from './tools/binary-plugin.mjs';
+
+const iccProfilePath = 'lib/mixins/data/sRGB_IEC61966_2_1.icc';
 
 const external = [
   'stream',
@@ -55,7 +58,7 @@ export default [
       interop: 'default',
     },
     plugins: [
-      binary('.icc'),
+      asset(iccProfilePath, 'data/sRGB_IEC61966_2_1.icc'),
       nodeResolve({
         exportConditions: ['node'],
       }),

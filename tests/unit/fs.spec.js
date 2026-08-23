@@ -1,4 +1,6 @@
 import { vi } from 'vitest';
+import { resolve } from 'path';
+import { pathToFileURL } from 'url';
 import browserFs, {
   registerFile as registerBrowserFile,
 } from '../../lib/fs/browser';
@@ -6,6 +8,7 @@ import nodeFs, { registerFile as registerNodeFile } from '../../lib/fs/node';
 
 const browserPath = 'virtual/browser-file.bin';
 const nodePath = 'tests/images/bee.jpg';
+const nodeFileUrl = pathToFileURL(resolve(nodePath)).href;
 
 describe('browser fs', function () {
   afterEach(() => {
@@ -109,6 +112,7 @@ describe('browser fs', function () {
 describe('node fs', function () {
   afterEach(() => {
     registerNodeFile(nodePath, undefined);
+    registerNodeFile(nodeFileUrl, undefined);
   });
 
   test('registered data takes precedence over the native filesystem', function () {
@@ -127,5 +131,20 @@ describe('node fs', function () {
 
     expect(data.length).toBeGreaterThan(3);
     expect(stats.isFile()).toBe(true);
+  });
+
+  test('reads unregistered file URL strings from the native filesystem', function () {
+    const data = nodeFs.readFileSync(nodeFileUrl);
+    const stats = nodeFs.statSync(nodeFileUrl);
+
+    expect(data.length).toBeGreaterThan(3);
+    expect(stats.isFile()).toBe(true);
+  });
+
+  test('registered data takes precedence over a file URL', function () {
+    const data = new Uint8Array([1, 2, 3]);
+    registerNodeFile(nodeFileUrl, data);
+
+    expect(nodeFs.readFileSync(nodeFileUrl)).toBe(data);
   });
 });

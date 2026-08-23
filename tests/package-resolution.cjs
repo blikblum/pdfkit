@@ -1,6 +1,59 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
-const PDFDocument = require('pdfkit');
+const sourceIccPath = path.resolve(
+  __dirname,
+  '../lib/mixins/data/sRGB_IEC61966_2_1.icc',
+);
+const emittedIccPath = path.resolve(
+  __dirname,
+  '../js/data/sRGB_IEC61966_2_1.icc',
+);
+const nodeBundlePath = require.resolve('pdfkit');
+const sourceIcc = fs.readFileSync(sourceIccPath);
+
+assert.deepEqual(fs.readFileSync(emittedIccPath), sourceIcc);
+assert.equal(
+  fs
+    .readFileSync(nodeBundlePath, 'utf8')
+    .includes(sourceIcc.toString('base64')),
+  false,
+);
+
+const originalReadFileSync = fs.readFileSync;
+let iccReads = 0;
+fs.readFileSync = function (file, ...args) {
+  if (String(file).endsWith('/sRGB_IEC61966_2_1.icc')) {
+    iccReads++;
+  }
+  return originalReadFileSync.call(this, file, ...args);
+};
+
+let PDFDocument;
+try {
+  PDFDocument = require('pdfkit');
+
+  assert.equal(iccReads, 0);
+
+  const document = new PDFDocument({ autoFirstPage: false, font: null });
+  document.resume();
+  document.end();
+  assert.equal(iccReads, 0);
+
+  for (let i = 0; i < 2; i++) {
+    const pdfaDocument = new PDFDocument({
+      autoFirstPage: false,
+      font: null,
+      subset: 'PDF/A-1',
+    });
+    pdfaDocument.resume();
+    pdfaDocument.end();
+  }
+  assert.equal(iccReads, 1);
+} finally {
+  fs.readFileSync = originalReadFileSync;
+}
 
 assert.equal(typeof PDFDocument, 'function');
 assert.equal(PDFDocument.name, 'PDFDocument');
@@ -12,4 +65,13 @@ assert.equal(typeof PDFDocument.registerFile, 'function');
   assert.equal(typeof browserModule.default, 'function');
   assert.equal(typeof browserModule.registerFile, 'function');
   assert.equal(browserModule.default.registerFile, browserModule.registerFile);
+
+  const pdfaDocument = new browserModule.default({
+    autoFirstPage: false,
+    font: null,
+    subset: 'PDF/A-1',
+  });
+  pdfaDocument.on('data', () => {});
+  pdfaDocument.end();
+  assert.equal(pdfaDocument._root.data.OutputIntents.length, 1);
 })();
