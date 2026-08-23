@@ -160,9 +160,10 @@ Use `toBlob` when displaying, downloading or uploading the PDF in a browser:
 ```javascript
 import { PDFDocument, registerStdFonts } from 'pdfkit';
 import Helvetica from 'pdfkit/standard-fonts/Helvetica';
+import HelveticaBold from 'pdfkit/standard-fonts/HelveticaBold';
 import { toBlob } from 'pdfkit/output';
 
-registerStdFonts(Helvetica);
+registerStdFonts(Helvetica, HelveticaBold);
 const doc = new PDFDocument();
 const output = toBlob(doc);
 
@@ -220,9 +221,13 @@ const fontData = new Uint8Array(await response.arrayBuffer());
 registerFile('fonts/Roboto-Regular.ttf', fontData);
 
 const doc = new PDFDocument();
-doc.registerFont('Roboto', 'fonts/Roboto-Regular.ttf');
 
-// Unregister the path when it is no longer needed.
+// register an alias for the font path
+doc.registerFont('Roboto', 'fonts/Roboto-Regular.ttf');
+// or use the path directly
+doc.font('fonts/Roboto-Regular.ttf');
+
+// Optionally unregister the path when it is no longer needed.
 registerFile('fonts/Roboto-Regular.ttf', undefined);
 ```
 

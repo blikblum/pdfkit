@@ -1,6 +1,6 @@
 {
   "name": "pdfkit",
-  "description": "A PDF generation library for Node.js",
+  "description": "A JavaScript PDF generation library",
   "keywords": [
     "pdf",
     "pdf writer",
@@ -9,7 +9,7 @@
     "document",
     "vector"
   ],
-  "version": "0.19.1",
+  "version": "0.20.0",
   "homepage": "http://pdfkit.org/",
   "author": {
     "name": "Devon Govett",
