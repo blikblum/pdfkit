@@ -217,7 +217,7 @@ Courier, and Times. To switch between standard fonts, call the `font` method wit
 
 Browser applications import and register only the standard-font data they use:
 
-    import PDFDocument, { registerStdFonts } from 'pdfkit';
+    import { PDFDocument, registerStdFonts } from 'pdfkit';
     import Helvetica from 'pdfkit/standard-fonts/Helvetica';
     import TimesRoman from 'pdfkit/standard-fonts/TimesRoman';
 

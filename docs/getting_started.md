@@ -9,12 +9,16 @@ following command after installing npm.
 
 ### Creating a document
 
-Creating a PDFKit document is quite simple. Just require the `pdfkit` module
-in your JavaScript source file and create an instance of the
-`PDFDocument` class.
+Creating a PDFKit document is quite simple. Require the named `PDFDocument`
+export and create an instance of the class.
 
-    const PDFDocument = require('pdfkit');
+    const { PDFDocument } = require('pdfkit');
     const doc = new PDFDocument();
+
+Both `const PDFDocument = require('pdfkit')` and
+`import PDFDocument from 'pdfkit'` remain supported for backward compatibility.
+New code should prefer the named `PDFDocument` export, which will make a future
+migration to an ESM-only package more straightforward.
 
 `PDFDocument` instances are readable Node streams. They don't get saved anywhere automatically,
 but you can call the `pipe` method to send the output of the PDF document to another
@@ -47,7 +51,7 @@ selected helper before ending the document so it receives the complete output.
 
 Use `toBlob` when displaying, downloading or uploading the PDF in a browser:
 
-    import PDFDocument, { registerStdFonts } from 'pdfkit';
+    import { PDFDocument, registerStdFonts } from 'pdfkit';
     import Helvetica from 'pdfkit/standard-fonts/Helvetica';
     import { toBlob } from 'pdfkit/output';
 
@@ -100,7 +104,7 @@ The browser build cannot read from the file system. To keep using paths with
 `registerFont`, `image` or `file`, register a `Uint8Array` under the exact path
 first:
 
-    import PDFDocument, { registerFile } from 'pdfkit';
+    import { PDFDocument, registerFile } from 'pdfkit';
 
     const response = await fetch('/fonts/Roboto-Regular.ttf');
     const fontData = new Uint8Array(await response.arrayBuffer());
@@ -122,13 +126,13 @@ The same registry is available from the CommonJS entry point in Node. Registered
 data takes precedence over a file at the same path; unregistering restores normal
 file system lookup.
 
-    const PDFDocument = require('pdfkit');
+    const { PDFDocument, registerFile } = require('pdfkit');
 
-    PDFDocument.registerFile('files/example.txt', new Uint8Array([1, 2, 3]), {
+    registerFile('files/example.txt', new Uint8Array([1, 2, 3]), {
       birthtime: new Date('2020-01-02T03:04:05Z'),
       ctime: new Date('2021-02-03T04:05:06Z'),
     });
-    PDFDocument.registerFile('files/example.txt', undefined);
+    registerFile('files/example.txt', undefined);
 
 `registerFile` accepts only a `Uint8Array` or `undefined`. A `Uint8Array` or
 `ArrayBuffer` can still be passed directly to `registerFont`, `image` and `file`,

@@ -11,6 +11,7 @@ const emittedIccPath = path.resolve(
   '../js/data/sRGB_IEC61966_2_1.icc',
 );
 const nodeBundlePath = require.resolve('pdfkit');
+const browserBundlePath = path.resolve(__dirname, '../js/pdfkit.browser.js');
 const outputHelpers = require('pdfkit/output');
 const sourceIcc = fs.readFileSync(sourceIccPath);
 
@@ -58,9 +59,20 @@ try {
 
 assert.equal(typeof PDFDocument, 'function');
 assert.equal(PDFDocument.name, 'PDFDocument');
+assert.equal(PDFDocument.PDFDocument, PDFDocument);
+assert.equal(typeof PDFDocument.LineWrapper, 'function');
 assert.equal(typeof PDFDocument.registerFile, 'function');
+const { LineWrapper, registerFile } = require('pdfkit');
+assert.equal(LineWrapper, PDFDocument.LineWrapper);
+assert.equal(registerFile, PDFDocument.registerFile);
 assert.equal(typeof outputHelpers.toBlob, 'function');
 assert.equal(typeof outputHelpers.toBytes, 'function');
+
+const BrowserPDFDocument = require(browserBundlePath);
+assert.equal(typeof BrowserPDFDocument, 'function');
+assert.equal(BrowserPDFDocument.PDFDocument, BrowserPDFDocument);
+assert.equal(BrowserPDFDocument.LineWrapper, undefined);
+assert.equal(BrowserPDFDocument.registerFile, undefined);
 
 (async () => {
   const nodeDocument = new PDFDocument({ autoFirstPage: false, font: null });
@@ -72,8 +84,11 @@ assert.equal(typeof outputHelpers.toBytes, 'function');
   const browserOutputHelpers = await import('pdfkit/output');
 
   assert.equal(typeof browserModule.default, 'function');
+  assert.equal(browserModule.PDFDocument, browserModule.default);
+  assert.equal(typeof browserModule.LineWrapper, 'function');
+  assert.equal(browserModule.default.LineWrapper, undefined);
   assert.equal(typeof browserModule.registerFile, 'function');
-  assert.equal(browserModule.default.registerFile, browserModule.registerFile);
+  assert.equal(browserModule.default.registerFile, undefined);
   assert.equal(typeof browserOutputHelpers.toBlob, 'function');
   assert.equal(typeof browserOutputHelpers.toBytes, 'function');
 

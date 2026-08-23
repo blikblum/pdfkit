@@ -82,6 +82,9 @@ export default [
       format: 'cjs',
       sourcemap: true,
       interop: 'default',
+      exports: 'named',
+      footer:
+        'module.exports = exports.default;\nmodule.exports.PDFDocument = exports.PDFDocument;\nmodule.exports.LineWrapper = exports.LineWrapper;\nmodule.exports.registerFile = exports.registerFile;',
     },
     plugins: [
       asset(iccProfilePath, 'data/sRGB_IEC61966_2_1.icc'),
@@ -130,6 +133,9 @@ export default [
       format: 'cjs',
       sourcemap: true,
       interop: 'default',
+      exports: 'named',
+      footer:
+        'module.exports = exports.default;\nmodule.exports.PDFDocument = exports.PDFDocument;',
     },
     plugins: browserPlugins(),
   },

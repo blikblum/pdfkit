@@ -69,8 +69,13 @@ yarn add pdfkit
 
 ## Example
 
+Both `const PDFDocument = require('pdfkit')` and
+`import PDFDocument from 'pdfkit'` remain supported for backward compatibility.
+New code should prefer the named `PDFDocument` export, which will make a future
+migration to an ESM-only package more straightforward.
+
 ```javascript
-const PDFDocument = require('pdfkit');
+const { PDFDocument } = require('pdfkit');
 const fs = require('fs');
 
 // Create a document
@@ -153,7 +158,7 @@ selected helper before ending the document so it receives the complete output.
 Use `toBlob` when displaying, downloading or uploading the PDF in a browser:
 
 ```javascript
-import PDFDocument, { registerStdFonts } from 'pdfkit';
+import { PDFDocument, registerStdFonts } from 'pdfkit';
 import Helvetica from 'pdfkit/standard-fonts/Helvetica';
 import { toBlob } from 'pdfkit/output';
 
@@ -207,7 +212,7 @@ The browser build has no access to the file system. You can register a
 `image` or `file`:
 
 ```javascript
-import PDFDocument, { registerFile } from 'pdfkit';
+import { PDFDocument, registerFile } from 'pdfkit';
 
 const response = await fetch('/fonts/Roboto-Regular.ttf');
 const fontData = new Uint8Array(await response.arrayBuffer());
@@ -223,17 +228,17 @@ registerFile('fonts/Roboto-Regular.ttf', undefined);
 
 Registration is global to the loaded PDFKit module. Registering the same path
 again replaces its data. In Node, registered data takes precedence over a file at
-the same path; unregistering it restores normal file system lookup. The CommonJS
-API is available on the `PDFDocument` constructor:
+the same path; unregistering it restores normal file system lookup. Both APIs
+are available as named exports from the CommonJS entry point:
 
 ```javascript
-const PDFDocument = require('pdfkit');
+const { PDFDocument, registerFile } = require('pdfkit');
 
-PDFDocument.registerFile('files/example.txt', new Uint8Array([1, 2, 3]), {
+registerFile('files/example.txt', new Uint8Array([1, 2, 3]), {
   birthtime: new Date('2020-01-02T03:04:05Z'),
   ctime: new Date('2021-02-03T04:05:06Z'),
 });
-PDFDocument.registerFile('files/example.txt', undefined);
+registerFile('files/example.txt', undefined);
 ```
 
 `registerFile` accepts only a `Uint8Array` or `undefined`. You can still pass a

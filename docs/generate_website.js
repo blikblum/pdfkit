@@ -3,7 +3,7 @@ const { markdown } = require('markdown');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const PDFDocument = require('pdfkit');
+const { PDFDocument } = require('pdfkit');
 const sharp = require('sharp');
 
 process.chdir(__dirname);
