@@ -45,6 +45,30 @@ const standardFontInputs = {
   ZapfDingbats: 'lib/font/generated/ZapfDingbats.js',
 };
 
+const browserPlugins = () => [
+  binary('.icc'),
+  nodeResolve({
+    exportConditions: ['default'],
+  }),
+  babel({
+    babelHelpers: 'bundled',
+    babelrc: false,
+    presets: [
+      [
+        '@babel/preset-env',
+        {
+          modules: false,
+          bugfixes: true,
+          targets: {
+            browsers: supportedBrowsers,
+          },
+        },
+      ],
+    ],
+    comments: false,
+  }),
+];
+
 export default [
   // CommonJS build for Node
   {
@@ -90,29 +114,19 @@ export default [
       format: 'es',
       sourcemap: true,
     },
-    plugins: [
-      binary('.icc'),
-      nodeResolve({
-        exportConditions: ['default'],
-      }),
-      babel({
-        babelHelpers: 'bundled',
-        babelrc: false,
-        presets: [
-          [
-            '@babel/preset-env',
-            {
-              modules: false,
-              bugfixes: true,
-              targets: {
-                browsers: supportedBrowsers,
-              },
-            },
-          ],
-        ],
-        comments: false,
-      }),
-    ],
+    plugins: browserPlugins(),
+  },
+  // CommonJS browser build consumed by Browserify for the standalone bundle.
+  {
+    input: 'lib/document.browser.standalone.js',
+    external,
+    output: {
+      file: 'js/pdfkit.browser.js',
+      format: 'cjs',
+      sourcemap: true,
+      interop: 'default',
+    },
+    plugins: browserPlugins(),
   },
   // Standard font data is kept outside the main bundles so it can be loaded
   // individually on demand.
