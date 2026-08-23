@@ -260,7 +260,7 @@ Here is an example showing how to set the font in each case.
 
 The output of this example looks like this:
 
-![6](images/fonts.png)
+![7](images/fonts.png)
 
 Another nice feature of the PDFKit font support, is the ability to register a
 font file under a name for use later rather than entering the path to the font

@@ -1,9 +1,10 @@
 const pug = require('pug');
 const { markdown } = require('markdown');
 const fs = require('fs');
+const path = require('path');
 const vm = require('vm');
-const { exec } = require('child_process');
 const PDFDocument = require('pdfkit');
+const sharp = require('sharp');
 
 process.chdir(__dirname);
 
@@ -72,7 +73,48 @@ const extractHeaders = function (tree) {
 };
 
 let imageIndex = 0;
-const generateImages = function (tree) {
+const pdfjsPromise = import('pdfjs-dist/legacy/build/pdf.mjs');
+
+const renderPdf = async function (data, output) {
+  const { getDocument } = await pdfjsPromise;
+  const loadingTask = getDocument({
+    data: new Uint8Array(data),
+    useSystemFonts: false,
+    standardFontDataUrl: path.join(
+      __dirname,
+      '../node_modules/pdfjs-dist/standard_fonts/',
+    ),
+  });
+  const pdfDocument = await loadingTask.promise;
+
+  try {
+    const page = await pdfDocument.getPage(1);
+    const viewport = page.getViewport({ scale: 150 / 72 });
+    const canvasFactory = pdfDocument.canvasFactory;
+    const canvasAndContext = canvasFactory.create(
+      viewport.width,
+      viewport.height,
+    );
+
+    try {
+      await page.render({
+        canvasContext: canvasAndContext.context,
+        viewport,
+        background: '#fff',
+      }).promise;
+
+      const image = canvasAndContext.canvas.toBuffer('image/png');
+      await sharp(image).trim({ threshold: 0 }).png().toFile(output);
+    } finally {
+      page.cleanup();
+      canvasFactory.destroy(canvasAndContext);
+    }
+  } finally {
+    await loadingTask.destroy();
+  }
+};
+
+const generateImages = async function (tree) {
   // find code blocks
   const codeBlocks = [];
   for (var node of tree) {
@@ -88,11 +130,15 @@ const generateImages = function (tree) {
       let code = codeBlocks[attrs.alt];
       delete attrs.height; // used for pdf generation
 
-      // create a PDF and run the example
+      // create a PDF in memory and run the example
       const doc = new PDFDocument();
       const f = `img/${imageIndex++}`;
-      var file = fs.createWriteStream(`${f}.pdf`);
-      doc.pipe(file);
+      const chunks = [];
+      const pdf = new Promise((resolve, reject) => {
+        doc.on('data', (chunk) => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', reject);
+      });
 
       doc.translate(doc.x, doc.y);
       doc.scale(0.8);
@@ -107,56 +153,48 @@ const generateImages = function (tree) {
       delete attrs.alt;
       attrs.href = `${f}.png`;
 
-      // write the PDF, convert to PNG and trim with ImageMagick (https://imagemagick.org)
-      file.on('finish', () => {
-        exec(
-          `magick -density 150x150 ${f}.pdf -trim ${f}.png`,
-          (err, stdout, stderr) => {
-            if (stderr) {
-              console.error(stderr);
-            }
-            if (err) {
-              console.error(err);
-            }
-            fs.unlinkSync(`${f}.pdf`);
-          },
-        );
-      });
-
       doc.end();
+      await renderPdf(await pdf, `${f}.png`);
     }
   }
 };
 
-const pages = [];
-for (let file of Array.from(files)) {
-  let content = fs.readFileSync(file, 'utf8');
+const generateWebsite = async function () {
+  const pages = [];
+  for (let file of Array.from(files)) {
+    let content = fs.readFileSync(file, 'utf8');
 
-  // turn github highlighted code blocks into normal markdown code blocks
-  content = content.replace(
-    /^```(?:javascript|js|bash)\r?\n([\s\S]*?)\r?\n```/gm,
-    (m, $1) => `    ${$1.split(/\r?\n/).join('\n    ')}`,
-  );
+    // turn github highlighted code blocks into normal markdown code blocks
+    content = content.replace(
+      /^```(?:javascript|js|bash)\r?\n([\s\S]*?)\r?\n```/gm,
+      (m, $1) => `    ${$1.split(/\r?\n/).join('\n    ')}`,
+    );
 
-  const tree = markdown.parse(content);
-  const headers = extractHeaders(tree);
-  generateImages(tree);
+    const tree = markdown.parse(content);
+    const headers = extractHeaders(tree);
+    await generateImages(tree);
 
-  file = file.replace(/README\.md/, 'index').replace(/\.md$/, '');
+    file = file.replace(/README\.md/, 'index').replace(/\.md$/, '');
 
-  pages.push({
-    file,
-    url: `/docs/${file}.html`,
-    title: headers[0].title,
-    headers: headers.slice(1),
-    content: markdown.toHTML(tree),
-  });
-}
+    pages.push({
+      file,
+      url: `/docs/${file}.html`,
+      title: headers[0].title,
+      headers: headers.slice(1),
+      content: markdown.toHTML(tree),
+    });
+  }
 
-for (let index = 0; index < pages.length; index++) {
-  const page = pages[index];
-  page.pages = pages;
-  page.index = index;
-  const html = pug.renderFile('template.pug', page);
-  fs.writeFileSync(page.file + '.html', html, 'utf8');
-}
+  for (let index = 0; index < pages.length; index++) {
+    const page = pages[index];
+    page.pages = pages;
+    page.index = index;
+    const html = pug.renderFile('template.pug', page);
+    fs.writeFileSync(page.file + '.html', html, 'utf8');
+  }
+};
+
+generateWebsite().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
