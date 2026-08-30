@@ -8,7 +8,9 @@ h1 {
   margin-bottom: 0;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: 'Alegreya';
   font-weight: 700;
 }
@@ -22,9 +24,10 @@ body > nav {
   position: fixed;
   width: 250px;
   height: 100%;
-  background: #F4F4F4;
+  background: #f4f4f4;
   font-size: 15px;
   padding-right: 10px;
+  overflow-y: auto;
 }
 
 nav > ul {
@@ -56,7 +59,7 @@ body > nav > ul > li > a {
 }
 
 nav a.selected {
-  color: #AA0000;
+  color: #aa0000;
 }
 
 .main {
@@ -68,7 +71,7 @@ nav a.selected {
 }
 
 .main a[href] {
-  color: #AA0000;
+  color: #aa0000;
 }
 
 .main a[href]:active {
@@ -113,7 +116,8 @@ p {
   padding: 3px 0;
 }
 
-#documentation, #documentation + p {
+#documentation,
+#documentation + p {
   display: none;
 }
 
