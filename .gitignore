@@ -5,6 +5,8 @@ node-zlib/
 playground/
 build/
 js/
+!docs/js/
+!docs/js/scroll.js
 .vscode
 .idea
 coverage

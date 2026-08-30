@@ -10,7 +10,9 @@ ghpages.publish(
     src: [
       'index.html',
       'docs/*.html',
+      'docs/css/*.css',
       'docs/img/*.png',
+      'docs/js/*.js',
       'docs/guide.pdf',
       'examples/browserify/browser.html',
       'examples/browserify/bundle.js',
